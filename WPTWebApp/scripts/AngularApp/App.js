@@ -1,0 +1,1 @@
+﻿var WPTngApp = angular.module('WPTngApp', ['angularTreeview', 'ui.bootstrap']);

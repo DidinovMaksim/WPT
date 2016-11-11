@@ -1,0 +1,112 @@
+﻿
+<div >
+    <div ng-controller="treeController" ng-init="init()">
+
+
+        <!--
+          [TREE attribute]
+          angular-treeview: the treeview directive
+          tree-id : each tree's unique id.
+          tree-model : the tree model on $scope.
+          node-id : each node's id
+          node-label : each node's label
+          node-children: each node's children
+        -->
+
+        <div class="form-group">
+            <label>Select from db: </label>
+            <select class="form-control" ng-options="treeL.Id as treeL.Address for treeL in treeList" ng-model="treeL" ng-change="getInfoFromDb()" ng-disabled="isWorking"></select>
+            <button  class="btn btn-primary" ng-click="loadTreeFromDB(treel)" ng-disabled="isWorking">Loadfrom DB</button>
+            <table ng-show="ShowDbTreeInfo" ng-disabled="isWorking"  class="table">
+                <tr>
+                    <td>Date created:</td>
+                    <td>{{dbTree.Date}}</td>
+                </tr>
+                <tr>
+                    <td>Description: </td>
+                    <td>{{dbTree.Description}}</td>
+                </tr>
+            </table>
+        </div>
+        <div class="form-group" id="params">
+            <input class="form-control" type="text" ng-model="url" ng-disabled="isWorking" ng-change="urlChanged()" placeholder="Enter website url" />
+            <button type="button" class="btn btn-info" ng-model="checkOnlyDeeper" ng-disabled="isWorking" uib-btn-checkbox btn-checkbox-true="true" btn-checkbox-false="false">
+                Parse only deeper
+            </button>
+            @*<label><input type="checkbox" ng-model="checkOnlyDeeper" ng-disabled="isWorking" />Parse only deeper</label>*@
+            <button type="button" class="btn btn-info" ng-model="parseParams" ng-disabled="isWorking" uib-btn-checkbox btn-checkbox-true="true" btn-checkbox-false="false">
+                Parse parameters
+            </button>
+            @*<label><input type="checkbox" ng-model="parseParams" ng-disabled="isWorking" />Parse parameters</label>*@
+            <button type="button" class="btn btn-info" ng-model="realtime" uib-btn-checkbox btn-checkbox-true="true" btn-checkbox-false="false">
+                Show results in realtime
+            </button>
+            @*<label><input type="checkbox" ng-model="realtime" />Show results in realtime</label>*@
+
+            <label>Nodes limit (leave 0 to parse whole tree): <input type="number" class="form-control" ng-model="limit" ng-disabled="isWorking" /></label>
+
+            
+            <uib-progressbar max="totalCount" value="pgbValue" ng-show="isWorking"><span style="color:white; white-space:nowrap;">{{pgbValue}} / {{totalCount}}</span></uib-progressbar>
+
+        </div>
+        <div class="form-group" id="actions" >
+            <button class="btn btn-primary" ng-click="parseTree()" ng-disabled="isWorking">Start parse</button>
+            <button class="btn btn-primary" ng-click="measureSpeed()" ng-show="showMAft" ng-disabled="isWorking">Start measure</button>
+
+            <button class="btn btn-primary" ng-click="getSlowestNode()" ng-disabled="isWorking" ng-show="showMAft">Get slowest node</button>
+            <button class="btn btn-primary" ng-click="getFastestNode()" ng-disabled="isWorking" ng-show="showMAft">Get fastest node</button>
+        </div>
+        <div ng-show="showMAft" class="form-group">
+            <textarea class="form-control" rows="5" placeholder="Description to save" ng-model="descSave" ng-disabled="isWorking" ></textarea>
+            <button class="btn btn-primary"  ng-click="saveTree()" ng-disabled="isWorking">Save tree</button>
+        </div>
+        <div class="form-group">
+            <table class="table">
+                <tr ng-show="showSlowestNode">
+                    <td>
+                        <label>Slowest node:</label>
+
+                    </td>
+                    <td>
+                        {{slowestNode}}
+                    </td>
+                </tr>
+                <tr ng-show="showFastestNode">
+                    <td>
+                        <label>Fastest node:</label>
+                    </td>
+                    <td>
+                        {{fastestNode}}
+                    </td>
+                </tr>
+            </table>
+
+        </div>
+
+
+        <div ng-show="progressDiv" class="form-group">
+            <table class="table">
+                <tr>
+                    <td>Parsed</td>
+                    <td>{{Parsed}}</td>
+                    <td>{{totalCount}}</td>
+                </tr>
+                <tr>
+                    <td>Measured</td>
+                    <td>{{Measured}}</td>
+                    <td>{{totalCount}}</td>
+                </tr>
+            </table>
+            <label>Current: {{curParsing}}{{curMeasuring}}</label>
+
+        </div>
+        <div data-angular-treeview="true"
+             data-tree-id="mytree"
+             data-tree-model="treeData"
+             data-node-id="Url"
+             data-node-label="Display"
+             data-node-children="ChildNodes">
+        </div>
+
+    </div>
+</div>
