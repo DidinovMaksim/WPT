@@ -13,14 +13,12 @@
                 limit: $scope.limit
             }
         }).success(function (data, status, headers, config) {
-            if (data === "True") {
+            if (data === "True") { // сделать по людски
 
                 $scope.isWorking = true;
                 $scope.curAction = "parse";
                 $scope.getProgress();
             }
-
-            //$scope.color = data;
         }).error(function () { });
     }
     $scope.measureSpeed = function () {
@@ -62,6 +60,32 @@
         });
     }
     $scope.init = function () {
+        $scope.checkOnlyDeeper = false;
+        $scope.parseParams = false;
+        $scope.curParsing = "";
+        $scope.curMeasuring = "";
+        $scope.totalCount = 0;
+        $scope.NotParsed = 0;
+        $scope.Parsed = 0;
+        $scope.NotMeasured = 0;
+        $scope.Measured = 0;
+        $scope.progressDiv = false;
+        $scope.isWorking = false;
+        $scope.showMAft = false;
+        $scope.prgParam = "";
+        $scope.dbTree = {};
+        $scope.dbTree.Date = ""
+        $scope.dbTree.Description = "";
+        $scope.ShowDbTreeInfo = false;
+        $scope.slowestNode = "";
+        $scope.showSlowestNode = false;
+        $scope.fastestNode = "";
+        $scope.showFastestNode = false;
+        $scope.realtime = false;
+        $scope.limit = 0;
+        $scope.pgbValue = 0;
+
+
         $http({
             url: '/home/LoadTreeList',
             method: 'GET',
@@ -154,51 +178,7 @@
             $scope.dbTree.Description = data.Description;
         });
     }
-    $scope.startGettingProgress = function (param) {
-
-        $scope.isWorking = true;
-        $scope.getProgress();
-        $timeout($scope.timeoutProgress, 30000);//ну просто архикостыль
-
-        /*stopPromise = $interval(function () {
-            $scope.getProgress();
-            switch (param) {
-                case "parse": {
-                    console.log("in parse");
-                    if ($scope.Parsed == $scope.totalCount) {
-                        console.log("in parse if");
-                        $scope.showMAft = true;
-                        $scope.GetTree();
-                        $scope.isWorking = false;
-                        $interval.cancel(stopPromise);
-                    }
-                    break;
-                }
-                case "measure": {
-                    console.log("in measure");
-                    if ($scope.Measured == $scope.totalCount) {
-                        console.log("in measure if");
-                        $scope.GetTree();
-                        $scope.isWorking = false;
-
-                        $interval.cancel(stopPromise);
-                    }
-                    break;
-                }
-                case "once": {
-                    console.log("in once");
-                    $interval.cancel(stopPromise);
-                    $scope.isWorking = false;
-                    break;
-                }
-                default: {
-                    $timeout($scope.timeoutProgress, 500);
-                }
-
-            }
-
-        }, 500);*/
-    }
+    
     $scope.timeoutProgress = function () {
         $scope.getProgress();
         switch (param) {
@@ -233,10 +213,8 @@
             default: {
                 $timeout($scope.timeoutProgress(param), 500);
             }
-
         }
     }
-
     $scope.GetTree = function () {
         $http({
             url: '/home/GetTree',
@@ -258,33 +236,4 @@
         $scope.Measured = data.Measured;
 
     }
-
-
-    $scope.checkOnlyDeeper = false;
-    $scope.parseParams = false;
-    $scope.curParsing = "";
-    $scope.curMeasuring = "";
-    $scope.totalCount = 0;
-    $scope.NotParsed = 0;
-    $scope.Parsed = 0;
-    $scope.NotMeasured = 0;
-    $scope.Measured = 0;
-    $scope.progressDiv = false;
-    $scope.isWorking = false;
-    $scope.showMAft = false;
-    $scope.prgParam = "";
-    $scope.dbTree = {};
-    $scope.dbTree.Date = ""
-    $scope.dbTree.Description = "";
-    $scope.ShowDbTreeInfo = false;
-    $scope.slowestNode = "";
-    $scope.showSlowestNode = false;
-    $scope.fastestNode = "";
-    $scope.showFastestNode = false;
-    $scope.realtime = false;
-    $scope.limit = 0;
-    $scope.pgbValue = 0;
-
-
-
 });

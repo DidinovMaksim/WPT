@@ -8,50 +8,12 @@ namespace WPTTool.Classes
 {
     public class Parser
     {
-        static public string[] ParseAllHref(string Href, bool checkWholeWebsite = true)
-        {
-            string[] allHref = getAllHref(Href, checkWholeWebsite);
-            string[] temp;
-            for (int i = 0; i < allHref.Count(); i++)
-            {
-                temp = getAllHref(allHref[i], checkWholeWebsite);
-                allHref = Concat(allHref, temp);
-                allHref = CleanDuplicates(allHref);
-            }
-            return allHref;
-        }
-        static Uri getCorrectUri(string url)
-        {
-            try
-            {
-                UriBuilder ub = new UriBuilder(url);
-                HttpWebRequest req = (HttpWebRequest)WebRequest.Create(ub.Uri.AbsoluteUri);
-
-                req.Method = "GET";
-                req.UserAgent = "TestAgent";
-                req.Accept = "text/html";
-
-                req.UseDefaultCredentials = true;
-                HttpWebResponse resp = (HttpWebResponse)req.GetResponse();
-
-                Uri uri = resp.ResponseUri;
-                req.Abort();
-
-                return uri;
-            }
-            catch (WebException ex)
-            {
-                if (ex.Response != null)
-                    return ex.Response.ResponseUri;
-                return null;
-                //return null;
-            }
-            //catch(uri)
-        }
+        
+        
         static public string[] getAllHref(string url, bool checkFromRoot = false, bool checkOnlyDeeper = false)
         {
 
-            Uri uri = getCorrectUri(url);
+            Uri uri = Services.getCorrectUri(url);
             if (uri != null)
             {
                 if (!uri.AbsoluteUri.Contains(url)) //redirect 
@@ -65,8 +27,6 @@ namespace WPTTool.Classes
             startUrl = checkFromRoot ? uri.Host.Replace("www.", "") : uri.AbsoluteUri;
             href = GetHref(startUrl, checkOnlyDeeper);
             href = CleanHref(href);
-            //Array.Sort(href);
-            //href = checkWholeWebsite ? GetActualHref(href, startUrl /*uri.Host*/) : GetActualHrefDeeper(href, startUrl);
             href = AddHostToRoot(href, uri.Scheme + "://" + uri.Host);
             href = CleanDuplicatesSorted(href);
 
@@ -74,7 +34,7 @@ namespace WPTTool.Classes
         }
         static string GeneratePattern(string url, bool checkOnlyDeeper = false)
         {
-            Uri uri = getCorrectUri(url);
+            Uri uri = Services.getCorrectUri(url);
             string segments = "";
             for (int i = 0; i < uri.Segments.Count(); i++)
                 segments += uri.Segments[i];
@@ -96,7 +56,7 @@ namespace WPTTool.Classes
         }
         static string[] GetHref(string url, bool checkOnlyDeeper = false)
         {
-            Uri uri = getCorrectUri(url);
+            Uri uri = Services.getCorrectUri(url);
 
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri.AbsoluteUri);
 
@@ -158,98 +118,7 @@ namespace WPTTool.Classes
             }
             return Href;
         }
-        /*
-
-            адский индокод, поправил регуляркой
         
-            static string[] GetActualHref(string[] href, string host)
-        {
-            
-
-            bool[] Actual = new bool[href.Length];
-            int cPositive = 0;
-            string cur = "";
-            string reg = @"^(((http(s)://)(www\.)(\S*\.)*"+ host.Replace(".", "\\.") + "\\S*)|/\\S*)";
-            for (int i = 0; i < href.Length; i++)
-            {
-                cur = href[i].Contains("?") ? href[i].Substring(0, href[i].IndexOf("?")) : href[i];
-                if (string.IsNullOrEmpty(href[i]))
-                {
-                    Actual[i] = false;
-                    continue;
-                }
-                //Uri tmpUri = getCorrectUri(cur);
-                //if (tmpUri != null ? tmpUri.Host.Contains(host) : false || (cur[0] == '/' && cur.IndexOf("//") != 0))
-                if (Regex.Match(href[i], reg).Success)//cur.Contains(host) || (cur[0] == '/' && cur.IndexOf("//") != 0))
-                {
-                    //x-zibit mode
-                    //facebook.com/olx.ua ^
-                    cPositive++;
-                    Actual[i] = true;
-                }
-                else
-                    Actual[i] = false;
-            }
-
-            string[] newHref = new string[cPositive];
-            int shift = 0;
-            for (int i = 0; i < cPositive;)
-            {
-                if (Actual[i + shift])
-                {
-                    newHref[i] = href[i + shift];
-                    i++;
-                }
-                else
-                    shift++;
-            }
-
-            return newHref;
-        }
-        static string[] GetActualHrefDeeper(string[] href, string fullUrl)
-        {
-            Uri url = getCorrectUri(fullUrl);
-
-            string segments = "";
-            for (int i = 0; i < url.Segments.Count(); i++)
-                segments += url.Segments[i];
-            segments += url.Query;
-
-            bool[] Actual = new bool[href.Length];
-            int cPositive = 0;
-            string cur = "";
-            string reg = "^(" + url.AbsoluteUri.Replace(".", "\\.") + ".*" + "|" + segments + ".*)";
-            //Console.WriteLine(reg);
-            //string reg =  url.AbsoluteUri + ".*";
-
-
-            for (int i = 0; i < href.Length; i++)
-            {
-                cur = href[i].Contains("?") ? href[i].Substring(0, href[i].IndexOf("?")) : href[i];
-                if (Regex.Match(href[i], reg).Success)//href[i].Contains(url.AbsoluteUri) || href[i].Contains(segments)) // www.olx.ua/  /
-                {
-                    cPositive++;
-                    Actual[i] = true;
-                }
-                else
-                    Actual[i] = false;
-            }
-
-            string[] newHref = new string[cPositive];
-            int shift = 0;
-            for (int i = 0; i < cPositive;)
-            {
-                if (Actual[i + shift])
-                {
-                    newHref[i] = href[i + shift];
-                    i++;
-                }
-                else
-                    shift++;
-            }
-
-            return newHref;
-        }*/
         static string[] AddHostToRoot(string[] href, string host)
         {
             for (int i = 0; i < href.Length; i++)
@@ -340,16 +209,6 @@ namespace WPTTool.Classes
             }
 
             return newHref;
-        }
-        static string[] Concat(string[] h1, string[] h2)
-        {
-            string[] newH = new string[h1.Count() + h2.Count()];
-            for (int i = 0; i < h1.Count(); i++)
-                newH[i] = h1[i];
-            for (int i = 0; i < h2.Count(); i++)
-                newH[h1.Count() + i] = h2[i];
-
-            return newH;
         }
     }
 }
