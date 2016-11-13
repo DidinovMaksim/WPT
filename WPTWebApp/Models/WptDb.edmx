@@ -5,6 +5,8 @@
     <!-- SSDL content -->
     <edmx:StorageModels>
       <Schema Namespace="WptDbModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'D:\PROJECTS\WPT\WPTWEBAPP\APP_DATA\WPTDB.MDF.dbo.History' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="History">
           <Key>
             <PropertyRef Name="Guid" />
@@ -16,7 +18,15 @@
           <Property Name="Date" Type="datetime" />
         </EntityType>
         <EntityContainer Name="WptDbModelStoreContainer">
-          <EntitySet Name="History" EntityType="Self.History" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="History" EntityType="Self.History" store:Type="Tables" store:Schema="dbo">
+            <DefiningQuery>SELECT 
+    [History].[Guid] AS [Guid], 
+    [History].[Address] AS [Address], 
+    [History].[Data] AS [Data], 
+    [History].[Description] AS [Description], 
+    [History].[Date] AS [Date]
+    FROM [dbo].[History] AS [History]</DefiningQuery>
+          </EntitySet>
         </EntityContainer>
       </Schema>
     </edmx:StorageModels>

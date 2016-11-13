@@ -144,6 +144,10 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="App_Data\WptDb.mdf" />
+    <Content Include="App_Data\WptDb_log.ldf">
+      <DependentUpon>WptDb.mdf</DependentUpon>
+    </Content>
     <Content Include="Content\angular.treeview.css" />
     <Content Include="Content\img\file.png" />
     <Content Include="Content\img\folder-closed.png" />
@@ -212,6 +216,8 @@
     <Content Include="Views\_ViewStart.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />
+    <Content Include="packages.config" />
+    <Content Include="scripts\angular.min.js.map" />
     <EntityDeploy Include="Models\WptDb.edmx">
       <Generator>EntityModelCodeGenerator</Generator>
       <LastGenOutput>WptDb.Designer.cs</LastGenOutput>
@@ -219,8 +225,6 @@
     <Content Include="Models\WptDb.edmx.diagram">
       <DependentUpon>WptDb.edmx</DependentUpon>
     </Content>
-    <Content Include="packages.config" />
-    <Content Include="scripts\angular.min.js.map" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -228,9 +232,7 @@
       <DependentUpon>Web.config</DependentUpon>
     </None>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="App_Data\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\WPTTool\WPTTool.csproj">
       <Project>{283f8e7e-fed6-428b-ab45-ac3eedb1ea2e}</Project>
