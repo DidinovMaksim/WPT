@@ -4,7 +4,7 @@ Website Performance Tester.
 Features two project:
 
 1. WPTTool - console application with all classes for creating sitemap, parsing web-sites and measuring response time. 
-2. WPTWebApp - web application with some kind of friendly UI for website perfrormanc testing.
+2. WPTWebApp - web application with some kind of friendly UI for website perfrormance testing.
 
 ## WPTTool
 ### Features
