@@ -25,7 +25,7 @@ Features two project:
 ### Features
 * ASP.NET MVC 5 based web-app.
 * Angular based front-end aplication.
-  * Builds a tree;
+  * Builds a tree (thanks to [Jaeha Ahn](https://github.com/eu81273) for providing MIT license for [Angular treeview](https://github.com/eu81273/angular.treeview);
   * shows progress of parsing and measuring in realtime;
   * can buid tree in progress (if specified parameter is checked);
 * Some Angular Bootstrap based UI.
