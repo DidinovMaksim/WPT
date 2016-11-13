@@ -9,8 +9,22 @@ namespace WPTTool.Classes
     [Serializable]
     public class Node
     {
-        
-        
+        public int MinResp { get; set; }
+        public int MaxResp { get; set; }
+        public int AvgResp { get; set; }
+        public List<Node> ChildNodes { get; set; }
+        /*public Node ParentNode
+        {
+            // Убрал из-за того, что сериализация не умеет хэндлить лупы
+            get { return parentNode; }
+            set { parentNode = value; }
+        }*/
+        public string Url { get; set; }
+        public string Display { get; set; }
+        public bool IsMeasured { get; set; }
+        public string FullUrl { get; set; }
+        public bool IsParsed { get; set; }
+
         Node parentNode;
         
         public Node()
@@ -24,7 +38,6 @@ namespace WPTTool.Classes
             Url = "";
             FullUrl = "";
             Display = "";
-
         }
         public Node(string Url):this()
         {           
@@ -55,9 +68,7 @@ namespace WPTTool.Classes
         public void MakeSpeedMeasurments(int count)
         {
             int[] respTime = new int[count];
-
-            //HttpWebRequest request = (HttpWebRequest)WebRequest.Create(FullUrl);
-            //Stopwatch timer = new Stopwatch();
+            
             try
             {
                 for (int i = 0; i < count; i++)
@@ -118,22 +129,7 @@ namespace WPTTool.Classes
         public Node GetParentNode()
         {
             return parentNode;
-        }
-        public int MinResp { get; set; }
-        public int MaxResp { get; set; }
-        public int AvgResp { get; set; }
-        public List<Node> ChildNodes { get; set; }
-        /*public Node ParentNode
-        {
-            // Убрал из-за того, что сериализация не умеет хэндлить лупы
-            get { return parentNode; }
-            set { parentNode = value; }
-        }*/
-        public string Url { get; set; }
-        public string Display { get; set; }
-        public bool IsMeasured { get; set; }
-        public string FullUrl { get; set; }
-        public bool IsParsed { get; set; }
+        }        
         public override string ToString()
         {
             return Url + "Min: " + MinResp + " Max: " + MaxResp;
@@ -155,7 +151,6 @@ namespace WPTTool.Classes
                 AvgResp = AvgResp,
                 FullUrl = FullUrl,
                 IsParsed = IsParsed
-
             };
         }
     }

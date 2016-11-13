@@ -37,7 +37,6 @@ namespace WPTWebApp.Controllers
                 {
                     return false;
                 }
-                //if (Session["tree"] == null)
                 if(string.IsNullOrEmpty(url))
                 {
                     if (Session["tree"] == null) return false;
@@ -49,8 +48,6 @@ namespace WPTWebApp.Controllers
                 Session["curGuid"] = Guid.NewGuid().ToString();
 
                 SitemapTree tree = (SitemapTree)Session["tree"];
-                //tree.ParseAllNodesWithTasks();
-
                 Task t = new Task(tree.ParseAllNodesWithTasks);
                 Session["isBuilding"] = true;
                 t.Start();
@@ -80,7 +77,6 @@ namespace WPTWebApp.Controllers
                 SitemapTree tree;
                 if (Session["tree"] != null)
                 {
-
                     Session["curGuid"] = Guid.NewGuid().ToString();
                     tree = (SitemapTree)Session["tree"];
                     tree.MarkAllAsNotMeasured();

@@ -10,12 +10,22 @@ namespace WPTTool.Classes
     {
         public enum CheckParse { WholeTree, From, To, FromTo, SpecificLevel };
         public object _lock = new object();
-        
+        public int MaxThreads { get; set; }
+        public int MeasureCount { get; set; }
+        public List<Node> RootNodes { get; set; }
+        public bool ParseParams { get; set; }
+        public bool CheckOnlyDeeper { get; set; }
+        public int TotalCount { get; set; }
+        public int TotalParsed { get; set; }
+        public int TotalNotParsed { get; set; }
+        public int TotalMeasured { get; set; }
+        public int TotalNotMeasured { get; set; }
+        public int TotalLimit { get; set; }
+
 
         //int pagesParsing = 0;
         string curParsing = "",
             curMeasuring = "";
-
         
         List<Node>  AllNodes;
 
@@ -152,7 +162,7 @@ namespace WPTTool.Classes
                     curMeasuring = node.FullUrl;
                 }
                 //Console.WriteLine("T:" + Task.CurrentId + "  " + TotalMeasured + "/" + TotalCount + " " + node.FullUrl);
-                System.Diagnostics.Debug.WriteLine("T:" + Task.CurrentId + "  " + TotalMeasured + "/" + TotalCount + " " + node.FullUrl);
+                //System.Diagnostics.Debug.WriteLine("T:" + Task.CurrentId + "  " + TotalMeasured + "/" + TotalCount + " " + node.FullUrl);
                 node.MakeSpeedMeasurments(MeasureCount);
                 lock (_lock)
                 {
@@ -369,7 +379,6 @@ namespace WPTTool.Classes
                     NotMeasured = TotalNotMeasured,
                     CurrentlyParsing = curParsing,
                     CurrentlyMeasuring = curMeasuring
-
                 };
             }
         }
@@ -411,17 +420,7 @@ namespace WPTTool.Classes
                 fastest = GetFastestChild(child.ChildNodes[i], fastest);
             return fastest;
         }
-        public int MaxThreads { get; set; }
-        public int MeasureCount { get; set; }
-        public List<Node> RootNodes { get; set; }
-        public bool ParseParams { get; set; }
-        public bool CheckOnlyDeeper { get; set; }
-        public int TotalCount { get; set; }
-        public int TotalParsed { get; set; }
-        public int TotalNotParsed { get; set; }
-        public int TotalMeasured { get; set; }
-        public int TotalNotMeasured { get; set; }
-        public int TotalLimit { get; set; }
+        
 
     }
 }
