@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace WPTTool.Classes
@@ -12,75 +10,68 @@ namespace WPTTool.Classes
     {
         public enum CheckParse { WholeTree, From, To, FromTo, SpecificLevel };
         public object _lock = new object();
-        int maxThreads = 1,
-            measureCount,
-            totalCount,
-            totalParsed,
-            totalNotParsed,
-            totalMeasured,
-            totalNotMeasured,
-            totalLimit;
+        
 
         //int pagesParsing = 0;
         string curParsing = "",
             curMeasuring = "";
 
-        bool parseParams, checkOnlyDeeper;
-        List<Node> rootNodes, AllNodes;
+        
+        List<Node>  AllNodes;
 
         public SitemapTree()
         {
             // Конструктор сугубо без параметров нужно для сериализации. Необязательный параметры он все равно воспринмиает как обязательные.
-            measureCount = 5;
-            rootNodes = new List<Node>();
+            MeasureCount = 5;
+            RootNodes = new List<Node>();
             AllNodes = new List<Node>();
-            parseParams = false;
-            checkOnlyDeeper = false;
-            maxThreads = Environment.ProcessorCount;
+            ParseParams = false;
+            CheckOnlyDeeper = false;
+            MaxThreads = Environment.ProcessorCount;
         }
-        public SitemapTree(bool parseParams = false, bool checkOnlyDeeper = false, int limit = 0) : this()
+        public SitemapTree(bool ParseParams = false, bool CheckOnlyDeeper = false, int limit = 0) : this()
         {
 
-            this.parseParams = parseParams;
-            this.checkOnlyDeeper = checkOnlyDeeper;
-            totalLimit = limit;
+            this.ParseParams = ParseParams;
+            this.CheckOnlyDeeper = CheckOnlyDeeper;
+            TotalLimit = limit;
         }
-        public SitemapTree(string url, bool parseParams = false, bool checkOnlyDeeper = false, int limit = 0) :
-            this(parseParams, checkOnlyDeeper, limit)
+        public SitemapTree(string url, bool ParseParams = false, bool CheckOnlyDeeper = false, int limit = 0) :
+            this(ParseParams, CheckOnlyDeeper, limit)
         {
             Uri uri = Services.getCorrectUri(url);
             if (uri != null)
-                AddNodesFromStrings(new string[] { uri.AbsoluteUri }, this.checkOnlyDeeper);
+                AddNodesFromStrings(new string[] { uri.AbsoluteUri }, this.CheckOnlyDeeper);
         }
         public Node GetRootNode(string url)
         {
-            for (int i = 0; i < rootNodes.Count; i++)
-                if (string.Compare(rootNodes[i].Url, url) == 0)
-                    return rootNodes[i];
+            for (int i = 0; i < RootNodes.Count; i++)
+                if (string.Compare(RootNodes[i].Url, url) == 0)
+                    return RootNodes[i];
 
             return null;
         }
-        public void AddNodesFromStrings(string[] href, bool checkOnlyDeeper = false)
+        public void AddNodesFromStrings(string[] href, bool CheckOnlyDeeper = false)
         {
             if (href.Count() == 0) return;
             Uri tmpUri = new Uri(href[0]);
             Node curNode;
             int minDepth = tmpUri.Segments.Count() - 1;
-            if (parseParams)
+            if (ParseParams)
                 minDepth += (!string.IsNullOrEmpty(tmpUri.Query) ? 1 : 0);
             int curDepth = 0;
             int added = 0;
             for (int i = 0; i < href.Length; i++)
             {
-                if (totalLimit > 0)
-                    if (!(totalCount + added < TotalLimit))
+                if (TotalLimit > 0)
+                    if (!(TotalCount + added < TotalLimit))
                         break;
 
                 tmpUri = new Uri(href[i]);
                 if (tmpUri == null) continue;
 
                 curDepth = tmpUri.Segments.Count() - 1;
-                if (parseParams)
+                if (ParseParams)
                     curDepth += !string.IsNullOrEmpty(tmpUri.Query) ? 1 : 0;
 
                 if (curDepth < minDepth)
@@ -88,7 +79,7 @@ namespace WPTTool.Classes
 
                 if (GetRootNode(tmpUri.Host + tmpUri.Segments[0]) == null)
                 {
-                    rootNodes.Add(new Node(tmpUri.Host + tmpUri.Segments[0]));
+                    RootNodes.Add(new Node(tmpUri.Host + tmpUri.Segments[0]));
                     added++;
                 }
                 curNode = GetRootNode(tmpUri.Host + tmpUri.Segments[0]);
@@ -103,7 +94,7 @@ namespace WPTTool.Classes
 
                     curNode = curNode.GetChildNode(tmpUri.Segments[j]);
                 }
-                if (parseParams)
+                if (ParseParams)
                     if (!string.IsNullOrEmpty(tmpUri.Query))
                         if (!curNode.ChildNodeExists(tmpUri.Query))
                         {
@@ -112,12 +103,12 @@ namespace WPTTool.Classes
                         }
             }
 
-            if (checkOnlyDeeper)
+            if (CheckOnlyDeeper)
             {
-                for (int i = 0; i < rootNodes.Count; i++)
+                for (int i = 0; i < RootNodes.Count; i++)
                 {
-                    rootNodes[i].IsParsed = true;
-                    MarkParsed(rootNodes[i], 1, minDepth);
+                    RootNodes[i].IsParsed = true;
+                    MarkParsed(RootNodes[i], 1, minDepth);
                 }
             }
             CalcTotal();
@@ -142,8 +133,8 @@ namespace WPTTool.Classes
                 {
                     curParsing = node.FullUrl;
                 }
-                Console.WriteLine("T:" + Task.CurrentId + "  " + totalParsed + "/" + totalCount + " " + node.FullUrl);
-                string[] href = Parser.getAllHref(node.FullUrl, checkOnlyDeeper: checkOnlyDeeper);
+                Console.WriteLine("T:" + Task.CurrentId + "  " + TotalParsed + "/" + TotalCount + " " + node.FullUrl);
+                string[] href = Parser.getAllHref(node.FullUrl, checkOnlyDeeper: CheckOnlyDeeper);
                 lock (_lock)
                 {
                     AddNodesFromStrings(href);
@@ -160,9 +151,9 @@ namespace WPTTool.Classes
                 {
                     curMeasuring = node.FullUrl;
                 }
-                //Console.WriteLine("T:" + Task.CurrentId + "  " + totalMeasured + "/" + totalCount + " " + node.FullUrl);
-                System.Diagnostics.Debug.WriteLine("T:" + Task.CurrentId + "  " + totalMeasured + "/" + totalCount + " " + node.FullUrl);
-                node.MakeSpeedMeasurments(measureCount);
+                //Console.WriteLine("T:" + Task.CurrentId + "  " + TotalMeasured + "/" + TotalCount + " " + node.FullUrl);
+                System.Diagnostics.Debug.WriteLine("T:" + Task.CurrentId + "  " + TotalMeasured + "/" + TotalCount + " " + node.FullUrl);
+                node.MakeSpeedMeasurments(MeasureCount);
                 lock (_lock)
                 {
                     CalcTotal();
@@ -171,24 +162,24 @@ namespace WPTTool.Classes
         }
         public void CalcTotal()
         {
-            totalCount = 0;
-            totalNotParsed = 0;
-            totalParsed = 0;
-            totalMeasured = 0;
-            totalNotMeasured = 0;
+            TotalCount = 0;
+            TotalNotParsed = 0;
+            TotalParsed = 0;
+            TotalMeasured = 0;
+            TotalNotMeasured = 0;
 
-            for (int i = 0; i < rootNodes.Count; i++)
+            for (int i = 0; i < RootNodes.Count; i++)
             {
-                CountChilds(rootNodes[i]);
+                CountChilds(RootNodes[i]);
             }
-            totalParsed = totalCount - totalNotParsed;
-            totalMeasured = totalCount - totalNotMeasured;
+            TotalParsed = TotalCount - TotalNotParsed;
+            TotalMeasured = TotalCount - TotalNotMeasured;
         }
         void CountChilds(Node node)
         {
-            totalCount += 1;
-            totalNotParsed += node.IsParsed ? 0 : 1;
-            totalNotMeasured += node.IsMeasured ? 0 : 1;
+            TotalCount += 1;
+            TotalNotParsed += node.IsParsed ? 0 : 1;
+            TotalNotMeasured += node.IsMeasured ? 0 : 1;
 
             for (int i = 0; i < node.ChildNodes.Count; i++)
                 CountChilds(node.ChildNodes[i]);
@@ -196,9 +187,9 @@ namespace WPTTool.Classes
         public int CalcMaxDepth()
         {
             int maxDepth = 0, temp = 0;
-            for (int i = 0; i < rootNodes.Count; i++)
+            for (int i = 0; i < RootNodes.Count; i++)
             {
-                temp = NodeDepth(rootNodes[i]);
+                temp = NodeDepth(RootNodes[i]);
                 if (temp > maxDepth)
                     maxDepth = temp;
             }
@@ -220,11 +211,11 @@ namespace WPTTool.Classes
         void GenerateNotMeasuredList()
         {
             AllNodes.Clear();
-            for (int i = 0; i < rootNodes.Count; i++)
+            for (int i = 0; i < RootNodes.Count; i++)
             {
-                if (!rootNodes[i].IsMeasured)
-                    AllNodes.Add(rootNodes[i]);
-                AllNodes.AddRange(getNotMeasuredChildren(rootNodes[i]));
+                if (!RootNodes[i].IsMeasured)
+                    AllNodes.Add(RootNodes[i]);
+                AllNodes.AddRange(getNotMeasuredChildren(RootNodes[i]));
             }
         }
         List<Node> getNotMeasuredChildren(Node child, List<Node> childNodesList = null)
@@ -244,17 +235,17 @@ namespace WPTTool.Classes
         }
         public List<Node> getRootNodes()
         {
-            return rootNodes;
+            return RootNodes;
         }
         public void GenerateNotParsedList()
         {
             AllNodes.Clear();
-            for (int i = 0; i < rootNodes.Count; i++)
+            for (int i = 0; i < RootNodes.Count; i++)
             {
-                if (!rootNodes[i].IsParsed)
-                    AllNodes.Add(rootNodes[i]);//.getCopy());
+                if (!RootNodes[i].IsParsed)
+                    AllNodes.Add(RootNodes[i]);//.getCopy());
 
-                AllNodes.AddRange(getNotParsedChildren(rootNodes[i]));
+                AllNodes.AddRange(getNotParsedChildren(RootNodes[i]));
             }
         }
         List<Node> getNotParsedChildren(Node child, List<Node> childNodesList = null)
@@ -276,7 +267,7 @@ namespace WPTTool.Classes
         {
             GenerateNotParsedList();
 
-            int taskCount = maxThreads < AllNodes.Count ? maxThreads : AllNodes.Count;
+            int taskCount = MaxThreads < AllNodes.Count ? MaxThreads : AllNodes.Count;
             Task[] t = new Task[taskCount];
             /*for(int i = 0; i < AllNodes.Count; i++)
             {
@@ -285,10 +276,10 @@ namespace WPTTool.Classes
             for (int i = 0; i < AllNodes.Count; i++)
             {
                 Node temp = AllNodes[i];
-                if (t[i % maxThreads] == null)
-                    t[i % maxThreads] = new Task(() => ParseSpecificNode(temp));
+                if (t[i % MaxThreads] == null)
+                    t[i % MaxThreads] = new Task(() => ParseSpecificNode(temp));
                 else
-                    t[i % maxThreads].ContinueWith(new Action<Task>((par) => ParseSpecificNode(temp)));
+                    t[i % MaxThreads].ContinueWith(new Action<Task>((par) => ParseSpecificNode(temp)));
             }
             for (int i = 0; i < taskCount; i++)
             {
@@ -296,7 +287,7 @@ namespace WPTTool.Classes
             }
             Task.WaitAll(t);
 
-            if (totalNotParsed != 0)
+            if (TotalNotParsed != 0)
                 ParseAllNodesWithTasks();
 
             PrepareToPrint();
@@ -306,7 +297,7 @@ namespace WPTTool.Classes
         {
             GenerateNotMeasuredList();
 
-            int taskCount = maxThreads < AllNodes.Count ? maxThreads : AllNodes.Count;
+            int taskCount = MaxThreads < AllNodes.Count ? MaxThreads : AllNodes.Count;
             Task[] t = new Task[taskCount];
 
             /*for (int i = 0; i < AllNodes.Count; i++)
@@ -317,17 +308,17 @@ namespace WPTTool.Classes
             {
                 //pagesParsing++;
                 Node temp = AllNodes[i];
-                if (t[i % maxThreads] == null)
-                    t[i % maxThreads] = new Task(() => MeasureSpecificNode(temp));
+                if (t[i % MaxThreads] == null)
+                    t[i % MaxThreads] = new Task(() => MeasureSpecificNode(temp));
                 else
-                    t[i % maxThreads].ContinueWith(new Action<Task>((par) => MeasureSpecificNode(temp)));
+                    t[i % MaxThreads].ContinueWith(new Action<Task>((par) => MeasureSpecificNode(temp)));
             }
             for (int i = 0; i < taskCount; i++)
             {
                 t[i].Start();
             }
             Task.WaitAll(t);
-            if (totalNotMeasured != 0)
+            if (TotalNotMeasured != 0)
                 MeasureAllNodesWithTasks();
 
             PrepareToPrint();
@@ -335,10 +326,10 @@ namespace WPTTool.Classes
         }
         public void PrepareToPrint()
         {
-            for (int i = 0; i < rootNodes.Count; i++)
+            for (int i = 0; i < RootNodes.Count; i++)
             {
-                rootNodes[i].GenerateDisplayString();
-                PrepareChildren(rootNodes[i]);
+                RootNodes[i].GenerateDisplayString();
+                PrepareChildren(RootNodes[i]);
             }
         }
         void PrepareChildren(Node child)
@@ -351,10 +342,10 @@ namespace WPTTool.Classes
         }
         public void MarkAllAsNotMeasured()
         {
-            for (int i = 0; i < rootNodes.Count; i++)
+            for (int i = 0; i < RootNodes.Count; i++)
             {
-                rootNodes[i].IsMeasured = false;
-                MarkChildrenAsNotMeasured(rootNodes[i]);
+                RootNodes[i].IsMeasured = false;
+                MarkChildrenAsNotMeasured(RootNodes[i]);
             }
             CalcTotal();
         }
@@ -371,11 +362,11 @@ namespace WPTTool.Classes
             {
                 return new Progress()
                 {
-                    Total = totalCount,
-                    Parsed = totalParsed,
-                    NotParsed = totalNotParsed,
-                    Measured = totalMeasured,
-                    NotMeasured = totalNotMeasured,
+                    Total = TotalCount,
+                    Parsed = TotalParsed,
+                    NotParsed = TotalNotParsed,
+                    Measured = TotalMeasured,
+                    NotMeasured = TotalNotMeasured,
                     CurrentlyParsing = curParsing,
                     CurrentlyMeasuring = curMeasuring
 
@@ -384,12 +375,12 @@ namespace WPTTool.Classes
         }
         public Node GetSlowestNode()
         {
-            if (totalCount == 0)
+            if (TotalCount == 0)
                 return null;
-            Node slowest = rootNodes[0];
-            for (int i = 0; i < rootNodes.Count; i++)
+            Node slowest = RootNodes[0];
+            for (int i = 0; i < RootNodes.Count; i++)
             {
-                slowest = GetSlowestChild(rootNodes[i], slowest);
+                slowest = GetSlowestChild(RootNodes[i], slowest);
             }
             return slowest;
         }
@@ -403,12 +394,12 @@ namespace WPTTool.Classes
         }
         public Node GetFastestNode()
         {
-            if (totalCount == 0)
+            if (TotalCount == 0)
                 return null;
-            Node fastest = rootNodes[0];
-            for (int i = 0; i < rootNodes.Count; i++)
+            Node fastest = RootNodes[0];
+            for (int i = 0; i < RootNodes.Count; i++)
             {
-                fastest = GetFastestChild(rootNodes[i], fastest);
+                fastest = GetFastestChild(RootNodes[i], fastest);
             }
             return fastest;
         }
@@ -420,61 +411,17 @@ namespace WPTTool.Classes
                 fastest = GetFastestChild(child.ChildNodes[i], fastest);
             return fastest;
         }
-        public int MaxThreads
-        {
-            get { return maxThreads; }
-            set { this.maxThreads = value; }
-        }
-        public int MeasureCount
-        {
-            get { return measureCount; }
-            set { measureCount = value; }
-        }
-        public List<Node> RootNodes
-        {
-            get { return rootNodes; }
-            set { rootNodes = value; }
-        }
-        public bool ParseParams
-        {
-            get { return parseParams; }
-            set { parseParams = value; }
-        }
-        public bool CheckOnlyDeeper
-        {
-            get { return checkOnlyDeeper; }
-            set { checkOnlyDeeper = value; }
-        }
-        public int TotalCount
-        {
-            get { return totalCount; }
-            set { totalCount = value; }
-        }
-        public int TotalParsed
-        {
-            get { return totalParsed; }
-            set { totalParsed = value; }
-        }
-        public int TotalNotParsed
-        {
-            get { return totalNotParsed; }
-            set { totalNotParsed = value; }
-        }
-        public int TotalMeasured
-        {
-            get { return totalMeasured; }
-            set { totalMeasured = value; }
-        }
-        public int TotalNotMeasured
-        {
-            get { return totalNotMeasured; }
-            set { totalNotMeasured = value; }
-        }
-        public int TotalLimit
-        {
-            get { return totalLimit; }
-            set { totalLimit = value; }
-        }
+        public int MaxThreads { get; set; }
+        public int MeasureCount { get; set; }
+        public List<Node> RootNodes { get; set; }
+        public bool ParseParams { get; set; }
+        public bool CheckOnlyDeeper { get; set; }
+        public int TotalCount { get; set; }
+        public int TotalParsed { get; set; }
+        public int TotalNotParsed { get; set; }
+        public int TotalMeasured { get; set; }
+        public int TotalNotMeasured { get; set; }
+        public int TotalLimit { get; set; }
 
     }
 }

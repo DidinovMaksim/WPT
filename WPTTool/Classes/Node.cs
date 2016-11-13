@@ -9,66 +9,64 @@ namespace WPTTool.Classes
     [Serializable]
     public class Node
     {
-        int minResp,
-            maxResp,
-            avgResp;
-        string url, fullUrl, display;
-        List<Node> childNodes;
+        
+        
         Node parentNode;
-        bool isParsed, isMeasured;
+        
         public Node()
         {
             parentNode = null;
-            minResp = maxResp = avgResp = 0;
-            childNodes = new List<Node>();
+            MinResp = MaxResp = AvgResp = 0;
+            ChildNodes = new List<Node>();
             parentNode = null;
-            isParsed = false;
-            isMeasured = false;
-            url = "";
-            fullUrl = "";
-            display = "";
+            IsParsed = false;
+            IsMeasured = false;
+            Url = "";
+            FullUrl = "";
+            Display = "";
 
         }
-        public Node(string url):this()
+        public Node(string Url):this()
         {           
-            this.url = url;
+            this.Url = Url;
             MakeFullUrl();
         }
-        public Node(Node parent, string url):this(url)
+        public Node(Node parent, string Url):this(Url)
         {
             parentNode = parent;
             MakeFullUrl();
         }
-        public void AddNode(string url)
+        public void AddNode(string Url)
         {
-            if (!ChildNodeExists(url))
-                childNodes.Add(new Node(this, url));
+            if (!ChildNodeExists(Url))
+                ChildNodes.Add(new Node(this, Url));
         }
         public void MakeFullUrl()
         {
-            fullUrl = url;
+            FullUrl = Url;
             Node tmp = parentNode;
             while (tmp != null)
             {
-                fullUrl = tmp.url + fullUrl;
+                FullUrl = tmp.Url + FullUrl;
                 tmp = tmp.GetParentNode();
             }
-            //fullUrl = "http://" + fullUrl;// Services.getCorrectUri(parentNode;
+            //FullUrl = "http://" + FullUrl;// Services.getCorrectUri(parentNode;
         }
         public void MakeSpeedMeasurments(int count)
         {
             int[] respTime = new int[count];
 
-            //HttpWebRequest request = (HttpWebRequest)WebRequest.Create(fullUrl);
+            //HttpWebRequest request = (HttpWebRequest)WebRequest.Create(FullUrl);
             //Stopwatch timer = new Stopwatch();
-
-            for (int i = 0; i < count; i++)
+            try
             {
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(Services.getCorrectUri(FullUrl));//fullUrl);
-                Stopwatch timer = new Stopwatch();
+                for (int i = 0; i < count; i++)
+                {
+                    HttpWebRequest request = (HttpWebRequest)WebRequest.Create(Services.getCorrectUri(FullUrl));//FullUrl);
+                    Stopwatch timer = new Stopwatch();
 
-                bool suceed = false;
-                //while (!suceed) // Тут иногда может умирать. Нужно что то придумать
+                    bool suceed = false;
+                    //while (!suceed) // Тут иногда может умирать. Нужно что то придумать
                     try
                     {
                         timer.Start();
@@ -81,33 +79,39 @@ namespace WPTTool.Classes
                         timer.Stop();
                         //timer.Reset();
                     }
-                respTime[i] = timer.Elapsed.Milliseconds;
+                    respTime[i] = timer.Elapsed.Milliseconds;
 
-                request.Abort();
+                    request.Abort();
+                }
+                MinResp = respTime.Min();
+                MaxResp = respTime.Max();
+                for (int i = 0; i < count; i++)
+                    AvgResp += respTime[i];
+
+                AvgResp /= count;
+                IsMeasured = true;
             }
-            minResp = respTime.Min();
-            maxResp = respTime.Max();
-            for (int i = 0; i < count; i++)
-                avgResp += respTime[i];
-
-            avgResp /= count;
-            isMeasured = true;
+            catch(Exception ex)
+            {
+                IsMeasured = true;
+            }
+            
             GenerateDisplayString();
 
         }
-        public bool ChildNodeExists(string url)
+        public bool ChildNodeExists(string Url)
         {
-            for (int i = 0; i < childNodes.Count; i++)
-                if (string.Compare(url, childNodes[i].Url) == 0)
+            for (int i = 0; i < ChildNodes.Count; i++)
+                if (string.Compare(Url, ChildNodes[i].Url) == 0)
                     return true;
 
             return false;
         }
-        public Node GetChildNode(string url)
+        public Node GetChildNode(string Url)
         {
-            for (int i = 0; i < childNodes.Count; i++)
-                if (string.Compare(url, childNodes[i].Url) == 0)
-                    return childNodes[i];
+            for (int i = 0; i < ChildNodes.Count; i++)
+                if (string.Compare(Url, ChildNodes[i].Url) == 0)
+                    return ChildNodes[i];
 
             return null;
         }
@@ -115,78 +119,42 @@ namespace WPTTool.Classes
         {
             return parentNode;
         }
-        public int MinResp
-        {
-            get { return minResp; }
-            set { minResp = value; }
-        }
-        public int MaxResp
-        {
-            get { return maxResp; }
-            set { maxResp = value; }
-        }
-        public int AvgResp
-        {
-            get { return avgResp; }
-            set { avgResp = value; }
-        }
-        public List<Node> ChildNodes
-        {
-            get { return childNodes; }
-            set { childNodes = value; }
-        }
+        public int MinResp { get; set; }
+        public int MaxResp { get; set; }
+        public int AvgResp { get; set; }
+        public List<Node> ChildNodes { get; set; }
         /*public Node ParentNode
         {
             // Убрал из-за того, что сериализация не умеет хэндлить лупы
             get { return parentNode; }
             set { parentNode = value; }
         }*/
-        public string Url
-        {
-            get { return url; }
-            set { url = value; } // Сеттер здесь по всем принципам явно лишний, но он нужен для сериализации. Как быть?
-        }
-        public string Display
-        {
-            get { return display; }
-            set { display = value; }
-        }
-        public bool IsMeasured
-        {
-            get { return isMeasured; }
-            set { isMeasured = value; }
-        }
-        public string FullUrl
-        {
-            get { return fullUrl; }
-            set { fullUrl = value; }
-        }
-        public bool IsParsed
-        {
-            get { return isParsed; }
-            set { isParsed = value; }
-        }
+        public string Url { get; set; }
+        public string Display { get; set; }
+        public bool IsMeasured { get; set; }
+        public string FullUrl { get; set; }
+        public bool IsParsed { get; set; }
         public override string ToString()
         {
-            return url + "Min: " + minResp + " Max: " + maxResp;
+            return Url + "Min: " + MinResp + " Max: " + MaxResp;
         }
         public void GenerateDisplayString()
         {
-            if(minResp !=0 && maxResp !=0 && AvgResp != 0)
-            display = url + " || Min: " + minResp + " Max: " + maxResp + " Avg: " + avgResp + " Children: " + childNodes.Count;
+            if(MinResp !=0 && MaxResp !=0 && AvgResp != 0)
+            Display = Url + " || Min: " + MinResp + " Max: " + MaxResp + " Avg: " + AvgResp + " Children: " + ChildNodes.Count;
             else
-                display = url + " || Children: " + childNodes.Count;
+                Display = Url + " || Children: " + ChildNodes.Count;
         }
         public Node getCopy(bool includeParent = false, bool includeChild = false)
         {
             return new Node()
             {
-                url = url,
-                minResp = minResp,
-                maxResp = maxResp,
-                avgResp = avgResp,
-                fullUrl = fullUrl,
-                isParsed = isParsed
+                Url = Url,
+                MinResp = MinResp,
+                MaxResp = MaxResp,
+                AvgResp = AvgResp,
+                FullUrl = FullUrl,
+                IsParsed = IsParsed
 
             };
         }
